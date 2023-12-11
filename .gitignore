@@ -1,0 +1,5 @@
+/.pytest_cache/
+tst.py
+.idea/
+.git/
+__pycache__/
