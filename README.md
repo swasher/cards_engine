@@ -1,12 +1,58 @@
 OOP Classes for manage gaming cards and calculate preferance game probability
 ====================================
 
-How it works
+Preface
 --------------------
+
+Full deck contains four suits (Spades, Clubs, Diamonds, Hearts - Пики, Трефы, Бубны, Черви).
+Suit can not be ordered.
+Every suit contain 13 Rank (from 2 to Ace).
+Rank can be ordered (i.e. Ace>King and 10<Queen) 
+
+Cards
+-------------------
+
+Any card can be constructed by following maner:
+
+```pycon
+>>> from classes import Rank, Suit, Card
+>>> card = Card(Rank.ACE, Suit.DIAMONDS)
+>>> card
+A♢
+>>> card = Card(Rank.SEVEN, Suit.CLUBS)
+>>> card
+7♣
+```
+
+There is predefined suits (as `list`):
+
+```pycon
+>>> from classes import HEARTS
+>>> HEARTS
+[2♡, 3♡, 4♡, 5♡, 6♡, 7♡, 8♡, 9♡, 10♡, J♡, Q♡, K♡, A♡]
+```
+
+and predefined every card as `dictionary`:
+```pycon
+>>> from classes import S, C, D, H
+>>> S[5]
+5♠
+>>> C['A']
+A♣
+```
+
+Card set
+-----------------------
+
+Usually we don't want to use full deck. So we can choose what card using on game table:
+
+
+
+
+
 
 Сначала нам нужно импортировать классы таким образом:
 ```python
-from classes import *
 ```
 
 Потому что в `classes.py` есть много предустановленных объектов. Эти объекты:

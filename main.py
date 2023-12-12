@@ -71,18 +71,18 @@ def analyze(right_hand: Hand, left_hand: Hand):
     suit = Suit.SPADES
 
     def tretya_dama(hand):
-        if len(hand.card_set) >= 3:
+        if len(hand.__cards) >= 3:
             if hand.get_high_card(suit).rank == Rank.QUEEN:
                 return True
 
     def dama_blank_OR_vtoraya_dama(hand):
-        if len(hand.card_set) in [1, 2]:
+        if len(hand.__cards) in [1, 2]:
             if hand.get_high_card(suit).rank == Rank.QUEEN:
                 return True
 
     def goliy_tuz(hand: Hand):
-        if len(hand.card_set) == 1:
-            if hand.card_set[0].rank == Rank.ACE:
+        if len(hand.__cards) == 1:
+            if hand.__cards[0].rank == Rank.ACE:
                 return True
 
     if tretya_dama(left_hand) or tretya_dama(left_hand):
@@ -94,8 +94,8 @@ def analyze(right_hand: Hand, left_hand: Hand):
     if dama_blank_OR_vtoraya_dama(left_hand) or dama_blank_OR_vtoraya_dama(right_hand):
         stat.dama_blank_OR_vtoraya_dama += 1
 
-    if len(right_hand.card_set) + len(left_hand.card_set) == 4:
-        match len(right_hand.card_set):
+    if len(right_hand.__cards) + len(left_hand.__cards) == 4:
+        match len(right_hand.__cards):
             case 0:
                 stat.rasklad_4_0 += 1
             case 1:
@@ -107,8 +107,8 @@ def analyze(right_hand: Hand, left_hand: Hand):
             case 4:
                 stat.rasklad_4_0 += 1
 
-    if len(right_hand.card_set) + len(left_hand.card_set) == 5:
-        match len(right_hand.card_set):
+    if len(right_hand.__cards) + len(left_hand.__cards) == 5:
+        match len(right_hand.__cards):
             case 0:
                 stat.rasklad_5_0 += 1
             case 1:
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     print('====== TRYs     :', total_try)
 
     for i in range(total_try):
-        for card in list(DECK.card_set):
+        for card in list(DECK.__cards):
             random_opponent = random.choice([right_hand, left_hand])
             DECK.move(random_opponent, card)
 

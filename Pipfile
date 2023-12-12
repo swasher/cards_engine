@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 
 [dev-packages]
+pytest = "*"
+ruff = "*"
+ruff-lsp = "*"
 
 [requires]
 python_version = "3.11"
