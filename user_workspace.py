@@ -1,6 +1,5 @@
 from classes import HEARTS, SPADES, S
-from classes import Deck, Pile, Player
-from classes import set_table, get_table
+from classes import Table, Card, Deck, Pile, Player
 
 
 def prn():
@@ -12,14 +11,20 @@ def prn():
     print('-----------------\n')
 
 
-set_table(HEARTS, SPADES)
-
+card_set = S[4], S['A'], HEARTS, SPADES
 deck = Deck()
 pile = Pile()
-
 player1 = Player()
 player2 = Player()
 player3 = Player()
+
+table = Table(
+    card_set=card_set,
+    deck=deck,
+    pile=pile,
+    players=[player1, player2, player3]
+)
+
 
 prn()
 

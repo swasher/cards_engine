@@ -12,6 +12,15 @@ class Suit(Enum):
 
     def __str__(self) -> str:
         return self.value
+    @property
+    def index(self) -> int:
+        """
+        0 for firsst element (SPADES),
+        1 for second element (CLUBS),
+        etc.
+        :return:
+        """
+        return self.__sort_order_
 
     def __gt__(self, other: Suit) -> bool:
         """
@@ -19,10 +28,11 @@ class Suit(Enum):
         :param other:
         :return:
         """
-        return self.value > other.value
+        return self.index > other.index
 
     def __lt__(self, other: Suit) -> bool:
-        return self.value < other.value
+        return self.index < other.index
+
 
 class Rank(Enum):
     TWO = 2
@@ -52,34 +62,42 @@ class Rank(Enum):
             case _:
                 return str(self.value)
 
-    def __gt__(self, other: "Rank") -> bool:
+    def __gt__(self, other: Rank) -> bool:
         return self.value > other.value
 
-    def __lt__(self, other: "Rank") -> bool:
+    def __lt__(self, other: Rank) -> bool:
         return self.value < other.value
 
 
 class Card:
     rank: Rank
     suit: Suit
-    owner: AbstractPlayer
-
-    # def __hash__(self):
-    #     return hash((self.rank, self.suit))
-
-    # def __lt__(self, other: "Card"):
-    #     return self.rank > other.rank and self.suit == other.suit
-
-    # def __gt__(self, other: "Card"):
-    #     return self.rank < other.rank and self.suit == other.suit
-    #
-    # def __eq__(self, other: "Card"):
-    #     return self.rank == other.rank and self.suit == other.suit
+    owner: AbstractPlayer | None
 
     def __init__(self, rank: Rank, suit: Suit):
         self.rank = rank
         self.suit = suit
         self.owner = None
+
+    @property
+    def index(self) -> int:
+        """
+        Служит для сортировки всех карт в колоде
+        :return:
+        """
+        return self.suit.index * self.rank.value
+
+    # def __hash__(self):
+    #     return hash((self.rank, self.suit))
+
+    def __lt__(self, other: Card):
+        return self.index > other.index
+
+    def __gt__(self, other: Card):
+        return self.index < other.index
+
+    def __eq__(self, other: Card):
+        return self.index == other.index
 
     def __str__(self):
         return f'{self.rank}{self.suit}'
@@ -94,33 +112,6 @@ CARD_SET - это глобальная переменная типа set, в н�
 """
 __CARD_SET: set[Card] | None = None
 
-
-def set_table(*args: Card | list[Card]) -> None:
-    """
-    Устанавливает глобальную переменную __CARD_SET, в которой содержатся весь набор карт.
-    Не изменяется в процессе игры.
-    :param args:
-    :return:
-    """
-    # Используем ключевое слово global, чтобы изменить глобальную переменную
-    global __CARD_SET
-
-    __CARD_SET = set()
-    if args:
-        for arg in args:
-            if type(arg) is Card:
-                __CARD_SET.add(arg)
-            else:
-                # arg is a list
-                __CARD_SET.update(arg)
-
-
-def get_table() -> set[Card]:
-    """
-    Возвращает все карты, принимающие участие в игре.
-    :return:
-    """
-    return __CARD_SET
 
 
 
@@ -139,7 +130,7 @@ class AbstractPlayer:
         return filtered
 
     def __str__(self):
-        sorted_objects = sorted(self.cards, key=lambda x: x.suit)
+        sorted_objects = sorted(self.cards, key=lambda x: x.index)
         s = ' '.join(map(str, sorted_objects))
         return s if s else '-'
 
@@ -150,8 +141,6 @@ class Deck(AbstractPlayer):
     только сдаваться игрокам. Возвращать карты в колоду нельзя.
     Колода инициализируется набором CardSet
     """
-
-    global __CARD_SET
 
     def __init__(self) -> None:
         """
@@ -238,6 +227,44 @@ class Player(AbstractPlayer):
             for card in cards:
                 __do_move(card)
 
+
+class Table:
+    """
+    Представляет собой Игровой Стол.
+    Инкапсулирует Карты, Колоду и Сброс, и Игроков
+    """
+    def __init__(self, card_set: tuple[Card | list[Card]], deck: AbstractPlayer, pile: AbstractPlayer, players: list[AbstractPlayer]):
+
+        s = set()
+        for item in card_set:
+            if type(item) is Card:
+                s.add(item)
+            else:
+                # item is a list
+                s.update(item)
+        self.card_set = s
+
+        self.deck = deck
+        self.pile = pile
+        self.players = players
+
+    def set_card_set(self):
+        # сейчас это происходит в init
+        pass
+
+    def get_card_set(self) -> set[Card]:
+        """
+        Возвращает все карты, принимающие участие в игре.
+        :return:
+        """
+        return self.card_set
+
+
+
+
+"""
+PREDEFINED VARIABLE FOR EVERY CARD
+"""
 
 # global SPADES, S_7, S_8, S_9, S10, S_J, S_Q, S_K, S_A
 S = {}
