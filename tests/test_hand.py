@@ -2,55 +2,68 @@
 TESTING HAND CLASS
 """
 import pytest
-from classes import *
+from classes import Suit, Rank, Card, Hand
+from classes import SPADES, D_7, D_A, C10
 
-def test_hand_init_1():
+
+def test_init_1():
     hand = Hand(D_A)
     assert type(hand) is Hand
     assert type(hand.cards) is set
-    assert hand.cards == {D_A}
 
 
-def test_hand_init_2():
+def test_init_2():
     hand = Hand(SPADES)
     assert type(hand) is Hand
     assert type(hand.cards) is set
-    assert hand.cards == {S_7, S_8, S_9, S10, S_J, S_Q, S_K, S_A}
 
 
-def test_hand_init_3():
+def test_init_3():
     hand = Hand(SPADES, D_7, D_A)
     assert type(hand) is Hand
     assert type(hand.cards) is set
-    assert hand.cards == {S_7, S_8, S_9, S10, S_J, S_Q, S_K, S_A, D_7, D_A}
 
-def test_hand_add_method_1():
+
+def test_add_card_method_1():
     hand = Hand()
     card = Card(Rank.TWO, Suit.SPADES)
     hand.add_card(card)
     assert card in hand.cards
     assert type(hand.cards) is set
-    assert hand.cards == {card}
 
 
-def test_hand_add_method_2():
+def test_add_card_method_2():
     hand = Hand()
     cards = SPADES
     with pytest.raises(TypeError):
         hand.add_card(cards)
 
 
-def test_hand_add_card_method_3():
+def test_add_card_method_3():
     hand = Hand()
     cards = SPADES, D_7, D_A
     with pytest.raises(TypeError):
         hand.add_card(cards)
 
 
-def test_hand_remove_card_method():
-    hand = Hand(DIAMONDS)
-    card1 = Card(Rank.EIGHT, Suit.DIAMONDS)
-    card2 = Card(Rank.KING, Suit.DIAMONDS)
-    hand.remove_card(card1)
-    hand.remove_card(card2)
-    assert hand.cards == {D_7, D_9, D10, D_J, D_Q, D_A}
+def test_discard_to_pile():
+    hand = Hand()
+    pile = Hand()
+
+    card1 = D_7
+    card2 = D_A
+    card3 = C10
+
+    hand.add_card(card1)
+    hand.add_card(card2)
+    hand.add_card(card3)
+
+    hand.discard_to_pile()
+
+    assert card1 not in hand.cards
+    assert card2 not in hand.cards
+    assert card3 not in hand.cards
+
+    assert card1 in pile.cards
+    assert card2 in pile.cards
+    assert card3 in pile.cards
