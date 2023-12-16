@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from __future__ import annotations
 from enum import Enum
 from typing import Tuple
 
@@ -76,53 +76,54 @@ class Card:
 
 
 class Hand:
-    card_set: set
+    _cards: set
 
     def __init__(self, *args: Card | list[Card]) -> None:
-        self.card_set = set()
+        self._cards = set()
         if args:
             for arg in args:
                 if type(arg) is Card:
-                    self.card_set.add(arg)
+                    self._cards.add(arg)
                 else:
-                    self.card_set.update(arg)
+                    self._cards.update(arg)
+
+    @property
+    def cards(self):
+        return self._cards
+    #
+    # @cards.setter
+    # def cards(self, value):
+    #     self._cards = value
 
     def add_card(self, card: Card) -> None:
-        self.card_set.update([card])
+        self._cards.update([card])
 
-    def __away(self, card):
+    def remove_card(self, card: Card) -> None:
         """
-        Это приватный метод, потому что карты не может просто "исчезнуть", ее нельзя "выкинуть".
-        Карты можно перенести в сброс специальным методом.
+        Это приватный метод, потому что карта не может просто "исчезнуть", ее нельзя "выкинуть".
+        Карты можно только переность между руками.
         :param card:
         :return:
         """
-        self.card_set.remove(card)
+        pass
+        self._cards.remove(card)
 
-    def discard_to_pile(self):
+    def move_all_to(self, hand: Hand):
         """
-        Выкинуть все карты с руки в сброс
+        Переместить все карты с руки в другую руку (или вернуть в колоду DECK или в сброс PILE)
         :return:
         """
-        for card in self.card_set:
-            self.away(card)
-            PILE.add_card(card)
-
-    def discard_to_deck(self):
-        """
-        Вернуть все карты с руки в колоду
-        :return:
-        """
-        for card in self.card_set:
-            self.away(card)
-            DECK.add_card(card)
+        if self.__cards:
+            for c in self.__cards:
+                hand.add_card(c)
+                self.remove_card(c)
 
     def get_suit(self, suit: Suit) -> list[Card]:
         """
         Возвращает все карты выбранной масти в руке.
         :return:
         """
-        return list(filter(lambda n: n.suit == suit, self.card_set))
+        return list(filter(lambda n: n.suit == suit, self.__cards))
 
     def get_high_card(self, suit: Suit) -> Card:
         """
@@ -130,7 +131,7 @@ class Hand:
         :param suit:
         :return:
         """
-        if self.card_set:
+        if self.__cards:
             return max(self.get_suit(suit))
         else:
             return None
@@ -143,7 +144,7 @@ class Hand:
         :return:
         """
         def __do_move(c: Card) -> None:
-            self.away(c)
+            self.__away(c)
             hand.add_card(c)
 
         if type(cards) is Card:
@@ -154,15 +155,8 @@ class Hand:
             for card in cards:
                 __do_move(card)
 
-    @property
-    def cards(self):
-        return self.card_set
-
     def __str__(self):
-        return ' '.join(map(str, self.card_set))
-
-    def __repr__(self):
-        return '✋'+' '.join(map(str, self.card_set))
+        return ' '.join(map(str, self.__cards))
 
 
 DECK = Hand()
