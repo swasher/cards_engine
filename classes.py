@@ -5,13 +5,13 @@ from typing import Tuple
 
 
 class Suit(Enum):
-    SPADES = "♠"
-    CLUBS = "♣"
-    DIAMONDS = "♢"
-    HEARTS = "♡"
+    SPADES = "♠️"  # ♠♤
+    CLUBS = "♣️"  # ♣♧
+    DIAMONDS = "♦️"  # ♦♢
+    HEARTS = "♥️"  # ♥♡
 
-    def __str__(self) -> str:
-        return self.value
+    # ♠︎♥︎♦︎♣︎ becomes ♠️♥️♦️♣️.
+
     @property
     def index(self) -> int:
         """
@@ -20,7 +20,7 @@ class Suit(Enum):
         etc.
         :return:
         """
-        return self.__sort_order_
+        return self._sort_order_
 
     def __gt__(self, other: Suit) -> bool:
         """
@@ -33,6 +33,22 @@ class Suit(Enum):
     def __lt__(self, other: Suit) -> bool:
         return self.index < other.index
 
+    def __str__(self) -> str:
+        # we can colorize output:
+        #
+        # class Style():
+        #     RED = "\033[31m"
+        #     CYAN = "\033[34m"
+        #     WHITE = "\033[37m"
+        #     BLACK = "\033[30m"
+        #     PINK = "\033[38;5;206m"
+        #     RESET = "\033[0m"
+        #
+        # if self in [Suit.DIAMONDS, Suit.HEARTS]:
+        #     return Style.RED + self.value + Style.RESET
+        # else:
+        #     return Style.WHITE + self.value + Style.RESET
+        return self.value
 
 class Rank(Enum):
     TWO = 2
@@ -85,10 +101,10 @@ class Card:
         Служит для сортировки всех карт в колоде
         :return:
         """
-        return self.suit.index * self.rank.value
+        return (self.suit.index * 100) + self.rank.value
 
-    # def __hash__(self):
-    #     return hash((self.rank, self.suit))
+    def __hash__(self):
+        return hash((self.rank, self.suit))
 
     def __lt__(self, other: Card):
         return self.index > other.index
@@ -100,19 +116,17 @@ class Card:
         return self.index == other.index
 
     def __str__(self):
+        # return f'{self.rank}'+Style.RED+f'{self.suit}'+Style.RESET
         return f'{self.rank}{self.suit}'
 
-    def __repr__(self):
-        return f'{self.rank}{self.suit}'
 
 
-"""
-CARD_SET - это глобальная переменная типа set, в ней содержится все карты, участвующие в игре.
-Этот список является неизменным, в отличие от DECK - колоды, из которой карты раздаются играющим. 
-"""
-__CARD_SET: set[Card] | None = None
-
-
+class Game:
+    """
+    Класс служит точкой доступа для других классов, чтобы "набор карт" card_set был доступен во всех классах.
+    Этот класс не имеет экземпларов.
+    """
+    cards = None
 
 
 class AbstractPlayer:
@@ -126,7 +140,7 @@ class AbstractPlayer:
         Возвращает все карты, которые на руках у данного игрока (или колоды, или сброса)
         :return:
         """
-        filtered = {obj for obj in get_table() if obj.owner == self}
+        filtered = {obj for obj in Game.cards if obj.owner == self}
         return filtered
 
     def __str__(self):
@@ -146,7 +160,7 @@ class Deck(AbstractPlayer):
         """
         :param args:
         """
-        for c in get_table():
+        for c in Game.cards:
             c.owner = self
 
     def draw(self, player: AbstractPlayer):
@@ -233,7 +247,7 @@ class Table:
     Представляет собой Игровой Стол.
     Инкапсулирует Карты, Колоду и Сброс, и Игроков
     """
-    def __init__(self, card_set: tuple[Card | list[Card]], deck: AbstractPlayer, pile: AbstractPlayer, players: list[AbstractPlayer]):
+    def __init__(self, card_set: tuple[Card | list[Card]]):
 
         s = set()
         for item in card_set:
@@ -242,31 +256,29 @@ class Table:
             else:
                 # item is a list
                 s.update(item)
-        self.card_set = s
+        Game.cards = s
 
-        self.deck = deck
-        self.pile = pile
-        self.players = players
+    @staticmethod
+    def total():
+        return len(Game.cards)
 
-    def set_card_set(self):
-        # сейчас это происходит в init
-        pass
-
-    def get_card_set(self) -> set[Card]:
-        """
-        Возвращает все карты, принимающие участие в игре.
-        :return:
-        """
-        return self.card_set
-
-
+    @staticmethod
+    def all_cards():
+        return Game.cards
 
 
 """
 PREDEFINED VARIABLE FOR EVERY CARD
 """
+J = 'J'
+Q = 'Q'
+K = 'K'
+A = 'A'
+KEYS = [2, 3, 4, 5, 6, 7, 8, 9, J, Q, K, A]
 
 # global SPADES, S_7, S_8, S_9, S10, S_J, S_Q, S_K, S_A
+
+
 S = {}
 S[2] = Card(Rank(Rank.TWO), Suit(Suit.SPADES))
 S[3] = Card(Rank(Rank.THREE), Suit(Suit.SPADES))
@@ -277,11 +289,11 @@ S[7] = Card(Rank(Rank.SEVEN), Suit(Suit.SPADES))
 S[8] = Card(Rank(Rank.EIGHT), Suit(Suit.SPADES))
 S[9] = Card(Rank(Rank.NINE), Suit(Suit.SPADES))
 S[10] = Card(Rank(Rank.TEN), Suit(Suit.SPADES))
-S['J'] = Card(Rank(Rank.JACK), Suit(Suit.SPADES))
-S['Q'] = Card(Rank(Rank.QUEEN), Suit(Suit.SPADES))
-S['K'] = Card(Rank(Rank.KING), Suit(Suit.SPADES))
-S['A'] = Card(Rank(Rank.ACE), Suit(Suit.SPADES))
-SPADES = [S[2], S[3], S[4], S[5], S[6], S[7], S[8], S[9], S[10], S['J'], S['Q'], S['K'], S['A']]
+S[J] = Card(Rank(Rank.JACK), Suit(Suit.SPADES))
+S[Q] = Card(Rank(Rank.QUEEN), Suit(Suit.SPADES))
+S[K] = Card(Rank(Rank.KING), Suit(Suit.SPADES))
+S[A] = Card(Rank(Rank.ACE), Suit(Suit.SPADES))
+SPADES = [S[2], S[3], S[4], S[5], S[6], S[7], S[8], S[9], S[10], S[J], S[Q], S[K], S[A]]
 
 
 # global CLUBS, C_7, C_8, C_9, C10, C_J, C_Q, C_K, C_A
@@ -294,12 +306,12 @@ C[6] = Card(Rank(Rank.SIX), Suit(Suit.CLUBS))
 C[7] = Card(Rank(Rank.SEVEN), Suit(Suit.CLUBS))
 C[8] = Card(Rank(Rank.EIGHT), Suit(Suit.CLUBS))
 C[9] = Card(Rank(Rank.NINE), Suit(Suit.CLUBS))
-C[10]= Card(Rank(Rank.TEN), Suit(Suit.CLUBS))
+C[10] = Card(Rank(Rank.TEN), Suit(Suit.CLUBS))
 C['J'] = Card(Rank(Rank.JACK), Suit(Suit.CLUBS))
 C['Q'] = Card(Rank(Rank.QUEEN), Suit(Suit.CLUBS))
 C['K'] = Card(Rank(Rank.KING), Suit(Suit.CLUBS))
 C['A'] = Card(Rank(Rank.ACE), Suit(Suit.CLUBS))
-CLUBS = [C[2], C[3], C[4], C[5], C[6], C[7], C[8], C[9], C[10], C['J'], C['Q'], C['K'], C['A']]
+CLUBS = [C[2], C[3], C[4], C[5], C[6], C[7], C[8], C[9], C[10], C[J], C[Q], C[K], C[A]]
 
 
 # global DIAMONDS, D_7, D_8, D_9, D10, D_J, D_Q, D_K, D_A
@@ -317,7 +329,7 @@ D['J'] = Card(Rank(Rank.JACK), Suit(Suit.DIAMONDS))
 D['Q'] = Card(Rank(Rank.QUEEN), Suit(Suit.DIAMONDS))
 D['K'] = Card(Rank(Rank.KING), Suit(Suit.DIAMONDS))
 D['A'] = Card(Rank(Rank.ACE), Suit(Suit.DIAMONDS))
-DIAMONDS = [D[2], D[3], D[4], D[5], D[6], D[7], D[8], D[9], D[10], D['J'], D['Q'], D['K'], D['A']]
+DIAMONDS = [D[2], D[3], D[4], D[5], D[6], D[7], D[8], D[9], D[10], D[J], D[Q], D[K], D['A']]
 
 
 # HEARTS - ЧЕРВИ

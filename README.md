@@ -24,6 +24,9 @@ A♢
 7♣
 ```
 
+Card sets
+-------------------------------
+
 There is predefined suits (as `list`):
 
 ```pycon
@@ -41,15 +44,44 @@ and predefined every card as `dictionary`:
 A♣
 ```
 
+We can use slice of suits for get part of suit:
+```pycon
+>>> CLUBS[9:12]
+[J♣, Q♣, K♣]
+```
+
+
 Card set
 -----------------------
 
-Usually we don't want to use full deck. So we can choose what card using on game table:
+Usually we don't want to use full deck. So we can choose what card using on game table, for example,
+for preferance - from 7 to Ace:
+
+```pycon
+>>> card_set = SPADES[5:], CLUBS[5:], DIAMONDS[5:], HEARTS[5:]
+>>> Table(card_set=card_set)
+
+>>> Table.total()
+32
+
+>>> Table.all_cards()
+{10♣, 10♢, 7♡, 9♠, 7♢, J♠, 7♣, Q♠, A♠, 8♠, J♡, 9♡, 9♣, 9♢, J♢, Q♡, Q♢, K♠, J♣, A♡, Q♣, A♣, A♢, 8♡, 8♢, 8♣, 10♠, K♡, K♣, K♢, 7♠, 10♡}
+```
+
+You can mix single cards and lists:
+
+```pycon
+>>> card_set = SPADES[5:], C[4], H[A]
+```
 
 
+Init Table
+-------------------------
+
+Table(card_set=card_set)
 
 
-
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
 
 Сначала нам нужно импортировать классы таким образом:
 ```python
