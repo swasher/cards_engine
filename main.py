@@ -164,8 +164,11 @@ if __name__ == "__main__":
         # print(f'Try {i}: RIGHT {right_hand} \t LEFT {left_hand}'.expandtabs(40), end="\r")
         analyze(right_hand, left_hand)
 
-        right_hand.discard_to_deck()
-        left_hand.discard_to_deck()
+        right_hand.discard_all_to_deck()
+        left_hand.discard_all_to_deck()
 
     stat.printing()
 
+    a = 3
+    b = 4
+    print(a+b)
