@@ -1,7 +1,8 @@
 """
 Deck - колода
 Trick - взятка
-Deal - сдать карты
+[to] Deal - сдать карты,
+Deal - "раздача" (игровая сессия)
 Dealer - раздающий
 Whist - Вист
 Безкозырка (No-trump)
@@ -10,16 +11,19 @@ Whist - Вист
 Bids - ставки (торговля)
 Discard - сброс (взяток) - это Действие
 Pile, или "discard pile" или "discard heap" - Сброс (место для сброшенных карт)
+Shuffle - тусовать
 """
 import random
 import sys
-from classes import *
+from classes import S, C, D, H
+from classes import Rank, Suit
+from classes import Player, Pile, Deck, Table
+from classes import SPADES, CLUBS, DIAMONDS, HEARTS
+
 
 def show(paramname, param):
     if param:
         print(f'{paramname}:\t {param / total_try:.2%}')
-
-
 
 
 
@@ -42,16 +46,8 @@ class Statistic:
     rasklad_3_2 = 0
 
     goliy_tuz = 0
-    tretya_dama = 0
 
     def printing(self):
-        # print(f'Расклад 4-0: {self.rasklad_4_0/total_try:.2%}')
-        # print(f'Расклад 3-1: {self.rasklad_3_1/total_try:.2%}')
-        # print(f'Расклад 2-2: {self.rasklad_2_2/total_try:.2%}')
-        # print(f'Дама бланк или вторая дама: {self.dama_blank_OR_vtoraya_dama/total_try:.2%}')
-        # print(f'Третья дама: {self.tretya_dama/total_try:.2%}')
-        # print(f'Голый туз: {self.goliy_tuz/total_try:.2%}')
-
         show('Расклад 4-0', self.rasklad_4_0)
         show('Расклад 3-1', self.rasklad_3_1)
         show('Расклад 2-2', self.rasklad_2_2)
@@ -66,23 +62,24 @@ class Statistic:
 stat = Statistic()
 
 
-def analyze(right_hand: Hand, left_hand: Hand):
+def analyze(right_hand: Player, left_hand: Player):
 
     suit = Suit.SPADES
 
     def tretya_dama(hand):
-        if len(hand.__cards) >= 3:
+        if len(hand.get_suit(suit)) >= 3:
             if hand.get_high_card(suit).rank == Rank.QUEEN:
                 return True
 
     def dama_blank_OR_vtoraya_dama(hand):
-        if len(hand.__cards) in [1, 2]:
+        if len(hand.get_suit(suit)) in [1, 2]:
             if hand.get_high_card(suit).rank == Rank.QUEEN:
                 return True
 
-    def goliy_tuz(hand: Hand):
-        if len(hand.__cards) == 1:
-            if hand.__cards[0].rank == Rank.ACE:
+    def goliy_tuz(hand: Player):
+        if hand.number_of_cards == 1:
+            c, = hand.cards  # unpack set
+            if c.rank == Rank.ACE:
                 return True
 
     if tretya_dama(left_hand) or tretya_dama(left_hand):
@@ -94,8 +91,8 @@ def analyze(right_hand: Hand, left_hand: Hand):
     if dama_blank_OR_vtoraya_dama(left_hand) or dama_blank_OR_vtoraya_dama(right_hand):
         stat.dama_blank_OR_vtoraya_dama += 1
 
-    if len(right_hand.__cards) + len(left_hand.__cards) == 4:
-        match len(right_hand.__cards):
+    if right_hand.number_of_cards + left_hand.number_of_cards == 4:
+        match right_hand.number_of_cards:
             case 0:
                 stat.rasklad_4_0 += 1
             case 1:
@@ -107,8 +104,8 @@ def analyze(right_hand: Hand, left_hand: Hand):
             case 4:
                 stat.rasklad_4_0 += 1
 
-    if len(right_hand.__cards) + len(left_hand.__cards) == 5:
-        match len(right_hand.__cards):
+    if right_hand.number_of_cards + left_hand.number_of_cards == 5:
+        match right_hand.number_of_cards:
             case 0:
                 stat.rasklad_5_0 += 1
             case 1:
@@ -123,52 +120,48 @@ def analyze(right_hand: Hand, left_hand: Hand):
                 stat.rasklad_5_0 += 1
 
 
-
-import sys
 if __name__ == "__main__":
-
-    # DECK = Hand(SPADES, S_Q, D10, H_A)
-    # print(type(DECK))
-    # print
-    # sys.exit()
 
     """
     PREPARE
     """
 
-    DECK = Hand(SPADES)
-    PILE = Hand()
+    # card_set = SPADES[5:], CLUBS[5:], DIAMONDS[5:], HEARTS[5:]
+    card_set = SPADES[5:]
+    # card_set = S[9], S[10], S['Q'], S['K']
 
-    left_hand = Hand()
-    right_hand = Hand()
-    player = Hand()
+    left_hand = Player()
+    right_hand = Player()
+    player = Player()
+
+    deck = Deck()
+    pile = Pile()
+
+    table = Table(card_set=card_set, deck=deck, pile=pile, players=[left_hand, right_hand, player])
+
+    table.reset()
 
     """
     LET'S PLAY
     """
 
-    DECK.move(player, (S_9, S10, S_Q, S_K))
-
-    total_try = 10000
+    total_try = 10
     stat.total_try = total_try
 
     print('====== PLAYER   :', player)
-    print('====== OPPONENTS:', DECK)
+    print('====== DECK     :', deck)
     print('====== TRYs     :', total_try)
 
     for i in range(total_try):
-        for card in list(DECK.__cards):
+        deck.draw(player, (S[9], S[10], S['Q'], S['K']))
+
+        for card in deck.cards:
             random_opponent = random.choice([right_hand, left_hand])
-            DECK.move(random_opponent, card)
+            deck.draw(random_opponent, card)
 
         # print(f'Try {i}: RIGHT {right_hand} \t LEFT {left_hand}'.expandtabs(40), end="\r")
+        print(f'Try {i}: RIGHT {right_hand} \t LEFT {left_hand}'.expandtabs(40))
         analyze(right_hand, left_hand)
-
-        right_hand.discard_all_to_deck()
-        left_hand.discard_all_to_deck()
+        table.reset()
 
     stat.printing()
-
-    a = 3
-    b = 4
-    print(a+b)

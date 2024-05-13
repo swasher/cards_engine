@@ -120,11 +120,13 @@ class Card:
         return f'{self.rank}{self.suit}'
 
 
-
 class Game:
     """
     Класс служит точкой доступа для других классов, чтобы "набор карт" card_set был доступен во всех классах.
     Этот класс не имеет экземпларов.
+
+    В НАСТОЯЩЕЕ ВРЕМЯ НЕ ИСПОЛЬЗУЕТСЯ.
+
     """
     cards = None
 
@@ -134,14 +136,24 @@ class AbstractPlayer:
     От этого класса будут наследоваться Колода (Deck), Сброс(Pile) и Игрок(Player).
     """
 
+    table: Table = None  # Ссылка на Table, чтобы каждый объект Player имел доступ к Столу
+
     @property
     def cards(self) -> set:
         """
         Возвращает все карты, которые на руках у данного игрока (или колоды, или сброса)
         :return:
         """
-        filtered = {obj for obj in Game.cards if obj.owner == self}
+        filtered = {obj for obj in self.table.cards if obj.owner == self}
         return filtered
+
+    @property
+    def random_card(self):
+        return random.choice(tuple(self.cards))
+
+    @property
+    def number_of_cards(self):
+        return len(self.cards)
 
     def __str__(self):
         sorted_objects = sorted(self.cards, key=lambda x: x.index)
@@ -160,16 +172,24 @@ class Deck(AbstractPlayer):
         """
         :param args:
         """
-        for c in Game.cards:
-            c.owner = self
+        # for c in Game.cards:
+        #     c.owner = self
+        ...
 
-    def draw(self, player: AbstractPlayer):
+    def draw(self, player: AbstractPlayer, cards: Card | tuple[Card] | None):
         """
-        Сдать случайную карту из колоды игроку player
+        Сдать случайную карту (cards = None) или набор конкретных карт из колоды игроку player.
         :return:
         """
-        card = random.choice(tuple(self.cards))
-        card.owner = player
+        if cards:
+            if type(cards) is Card:
+                cards.owner = player
+            else:
+                for item in cards:
+                    item.owner = player
+        else:
+            card = self.random_card
+            card.owner = player
 
 
 class Pile(AbstractPlayer):
@@ -191,18 +211,16 @@ class Player(AbstractPlayer):
         Выкинуть все карты с руки в сброс
         :return:
         """
-        for card in self.__cards:
-            self.__away(card)
-            PILE.add_card(card)
+        for card in self.cards:
+            card.owner = self.table.pile
 
     def discard_to_deck(self):
         """
         Вернуть все карты с руки в колоду
         :return:
         """
-        for card in self.__cards:
-            self.__away(card)
-            DECK.add_card(card)
+        for card in self.cards:
+            card.owner = self.table.deck
 
     def get_suit(self, suit: Suit) -> list[Card]:
         """
@@ -211,35 +229,35 @@ class Player(AbstractPlayer):
         """
         return list(filter(lambda n: n.suit == suit, self.cards))
 
-    def get_high_card(self, suit: Suit) -> Card:
+    def get_high_card(self, suit: Suit) -> Card | None:
         """
         Возвращает старшую карту в масти
         :param suit:
         :return:
         """
-        if self.__cards:
+        if self.get_suit(suit):
             return max(self.get_suit(suit))
-        else:
-            return None
 
-    def move(self, hand: "Hand", cards: Tuple[Card, ...] | Card):
-        """
-        Переместить из набора self в набор Hand список карт Tuple[Card] или одну карту Card.
-        :param cards:
-        :param hand:
-        :return:
-        """
-        def __do_move(c: Card) -> None:
-            self.away(c)
-            hand.add_card(c)
 
-        if type(cards) is Card:
-            # значит в функцию передали одну карту, а не кортеж
-            card = cards
-            __do_move(card)
-        else:
-            for card in cards:
-                __do_move(card)
+    # DEPRECATED
+    # def move(self, hand: Player, cards: Tuple[Card, ...] | Card):
+    #     """
+    #     Переместить из набора self в набор Hand список карт Tuple[Card] или одну карту Card.
+    #     :param cards:
+    #     :param hand:
+    #     :return:
+    #     """
+    #     def __do_move(c: Card) -> None:
+    #         self.away(c)
+    #         hand.add_card(c)
+    #
+    #     if type(cards) is Card:
+    #         # значит в функцию передали одну карту, а не кортеж
+    #         card = cards
+    #         __do_move(card)
+    #     else:
+    #         for card in cards:
+    #             __do_move(card)
 
 
 class Table:
@@ -247,24 +265,48 @@ class Table:
     Представляет собой Игровой Стол.
     Инкапсулирует Карты, Колоду и Сброс, и Игроков
     """
-    def __init__(self, card_set: tuple[Card | list[Card]]):
+    cards: set[Card] = set()
+    deck: Deck = None
+    pile: Pile = None
+    players: list[Player] = None
 
-        s = set()
+    def __init__(self, card_set: tuple[Card | list[Card]], deck: Deck, pile: Pile, players: list[Player]):
+
+        self.deck = deck
+        self.pile = pile
+        self.players = players
+
+        # таким образом, экземпляры Игроков, Сброса и Колоды будут иметь доступ к Столу
+        deck.table = self
+        pile.table = self
+        for p in players:
+            p.table = self
+
         for item in card_set:
             if type(item) is Card:
-                s.add(item)
+                # item is a single card
+                self.cards.add(item)
             else:
-                # item is a list
-                s.update(item)
-        Game.cards = s
+                # item is a list of cards
+                self.cards.update(item)
 
-    @staticmethod
-    def total():
-        return len(Game.cards)
+    @property
+    def total(self):
+        return len(self.cards)
 
-    @staticmethod
-    def all_cards():
-        return Game.cards
+    @property
+    def all_cards(self):
+        return self.cards
+
+    def reset(self):
+        """
+        Reset table, all in-game card moved to DECK
+        :param table:
+        :return:
+        """
+        for c in self.all_cards:
+            c.owner = self.deck
+
 
 
 """
@@ -350,5 +392,5 @@ H['A'] = Card(Rank(Rank.ACE), Suit(Suit.HEARTS))
 HEARTS = [H[2], H[3], H[4], H[5], H[6], H[7], H[8], H[9], H[10], H['J'], H['Q'], H['K'], H['A']]
 
 
-# global FULL_SET
-FULL_DECK = SPADES + CLUBS + DIAMONDS + HEARTS
+# FULL_SET
+FULL_PACK = SPADES + CLUBS + DIAMONDS + HEARTS

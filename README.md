@@ -4,10 +4,10 @@ OOP Classes for manage gaming cards and calculate preferance game probability
 Preface
 --------------------
 
-Full deck contains four suits (Spades, Clubs, Diamonds, Hearts - Пики, Трефы, Бубны, Черви).
-Suit can not be ordered.
-Every suit contain 13 Rank (from 2 to Ace).
-Rank can be ordered (i.e. Ace>King and 10<Queen) 
+Full deck contains four suits (Spades, Clubs, Diamonds, Hearts - Пики, Трефы, Бубны, Черви).  
+Every suit contain 13 Rank (from 2 to Ace).  
+Suits can be ordered.  
+Rank can be ordered (i.e. Ace>King and 10<Queen).   
 
 Cards
 -------------------
@@ -24,10 +24,14 @@ A♢
 7♣
 ```
 
-Card sets
+Each card has an `owner` - this is can be Player, Deck, or Pile.
+
+Suits
 -------------------------------
 
-There is predefined suits (as `list`):
+There is predefined suits as `list` or as `dictionary`:
+
+As list:
 
 ```pycon
 >>> from classes import HEARTS
@@ -35,7 +39,8 @@ There is predefined suits (as `list`):
 [2♡, 3♡, 4♡, 5♡, 6♡, 7♡, 8♡, 9♡, 10♡, J♡, Q♡, K♡, A♡]
 ```
 
-and predefined every card as `dictionary`:
+And as `dictionary`:
+
 ```pycon
 >>> from classes import S, C, D, H
 >>> S[5]
@@ -44,18 +49,28 @@ and predefined every card as `dictionary`:
 A♣
 ```
 
-We can use slice of suits for get part of suit:
+Keys are `int` for 2-10 and `str` for J, Q, K, A.
+
+Dictionary convenient for access individual cards, and list for slicing:
+
 ```pycon
 >>> CLUBS[9:12]
 [J♣, Q♣, K♣]
 ```
 
 
-Card set
+Table
 -----------------------
 
-Usually we don't want to use full deck. So we can choose what card using on game table, for example,
-for preferance - from 7 to Ace:
+Table - this is objaect that incapsulate:
+
+- all cards that's we can manipulate during session
+- `DECK` object
+- `PILE` object
+- few `PLAYER` object
+  
+Usually we don't want to use all available (`2`-`A`) cards for table. So we can choose what cards using on game table, for example,
+for Preferance game - from 7 to Ace:
 
 ```pycon
 >>> card_set = SPADES[5:], CLUBS[5:], DIAMONDS[5:], HEARTS[5:]
@@ -75,53 +90,18 @@ You can mix single cards and lists:
 ```
 
 
-Init Table
+Deck, Pile and Hands
 -------------------------
 
-Table(card_set=card_set)
+There is two predefined objects - DECK and PILE. This objects inherited from AbstractPlayer class.
+
+Usuale, early in the session, DECK will contains all cards of Table, and PILE will be empty.
+
+During game session, cards from DECK deals to HANDs, then perform a few tricks, and after each trick moved to PILE.
 
 
-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
 
-Сначала нам нужно импортировать классы таким образом:
-```python
-```
-
-Потому что в `classes.py` есть много предустановленных объектов. Эти объекты:
-
-- отдельные карты (от 7 до туза, но легко можно добавить до двойки):
-
-```python
->>> print(S_7, C_A)
-7♠ A♣
-```
-- масти
-
-```python
->>> print(SPADES)
-(7♠, 8♠, 9♠, 10♠, J♠, Q♠, K♠, A♠)
-
->>> print(DIAMONDS)
-(7♢, 8♢, 9♢, 10♢, J♢, Q♢, K♢, A♢)
-```
-
-- вся колода
-
-```python
->>> print(FULL_DECK)
-(7♠, 8♠, 9♠, 10♠, J♠, Q♠, K♠, A♠, 7♣, 8♣, 9♣, 10♣, J♣, Q♣, K♣, A♣, 7♢, 8♢, 9♢, 10♢, J♢, Q♢, K♢, A♢, 7♡, 8♡, 9♡, 10♡, J♡, Q♡, K♡, A♡)
-```
-
-- два пустые объекта - DECK и PILE. Это объекты типа Hand (рука), представляющие собой Колоду и Сброс (выкинутые из игры карты)
-
-```python
->>> print(type(DECK))
-<class 'classes.Hand'>
->>> print(type(PILE))
-<class 'classes.Hand'>
-```
-
-Создаем новую колоду, содержащую нужный набор карт. В качестве параметров можно пердать:
+Создаем новую колоду, содержащую нужный набор карт. В качестве параметров можно передать:
 - список карт (`list[Сard]`) - то есть список объектов Card, например, всю масть (константы SPADES, HEARTS, etc)
 - одну карту (`Card`)
 - карты и списки можно комбинировать
@@ -139,6 +119,14 @@ Table(card_set=card_set)
 ```
 
 По аналогии мы может сделать колоду из двух мастей, или из конкретных карт. Сброс у нас пустой.
+
+```pycon
+>>> print(type(DECK))
+<class 'classes.Hand'>
+>>> print(type(PILE))
+<class 'classes.Hand'>
+```
+
 
 Далее создаем три руки
 
