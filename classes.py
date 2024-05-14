@@ -15,10 +15,9 @@ class Suit(Enum):
     @property
     def index(self) -> int:
         """
-        0 for firsst element (SPADES),
-        1 for second element (CLUBS),
+        return 0 for firsst element (SPADES),
+        return 1 for second element (CLUBS),
         etc.
-        :return:
         """
         return self._sort_order_
 
@@ -49,6 +48,7 @@ class Suit(Enum):
         # else:
         #     return Style.WHITE + self.value + Style.RESET
         return self.value
+
 
 class Rank(Enum):
     TWO = 2
@@ -107,15 +107,19 @@ class Card:
         return hash((self.rank, self.suit))
 
     def __lt__(self, other: Card):
-        return self.index > other.index
+        return self.index < other.index
 
     def __gt__(self, other: Card):
-        return self.index < other.index
+        return self.index > other.index
 
     def __eq__(self, other: Card):
         return self.index == other.index
 
     def __str__(self):
+        # return f'{self.rank}'+Style.RED+f'{self.suit}'+Style.RESET
+        return f'{self.rank}{self.suit}'
+
+    def __repr__(self):
         # return f'{self.rank}'+Style.RED+f'{self.suit}'+Style.RESET
         return f'{self.rank}{self.suit}'
 
@@ -181,6 +185,7 @@ class Deck(AbstractPlayer):
         Сдать случайную карту (cards = None) или набор конкретных карт из колоды игроку player.
         :return:
         """
+
         if cards:
             if type(cards) is Card:
                 cards.owner = player

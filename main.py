@@ -15,7 +15,7 @@ Shuffle - тусовать
 """
 import random
 import sys
-from classes import S, C, D, H
+from classes import S, C, D, H, J, Q, K, A
 from classes import Rank, Suit
 from classes import Player, Pile, Deck, Table
 from classes import SPADES, CLUBS, DIAMONDS, HEARTS
@@ -48,6 +48,7 @@ class Statistic:
     goliy_tuz = 0
 
     def printing(self):
+        print('\nResult:')
         show('Расклад 4-0', self.rasklad_4_0)
         show('Расклад 3-1', self.rasklad_3_1)
         show('Расклад 2-2', self.rasklad_2_2)
@@ -65,6 +66,7 @@ stat = Statistic()
 def analyze(right_hand: Player, left_hand: Player):
 
     suit = Suit.SPADES
+    # todo тут гвоздями прибито, что мы тестируем именно на Пиках
 
     def tretya_dama(hand):
         if len(hand.get_suit(suit)) >= 3:
@@ -82,7 +84,7 @@ def analyze(right_hand: Player, left_hand: Player):
             if c.rank == Rank.ACE:
                 return True
 
-    if tretya_dama(left_hand) or tretya_dama(left_hand):
+    if tretya_dama(left_hand) or tretya_dama(right_hand):
         stat.tretya_dama += 1
 
     if goliy_tuz(left_hand) or goliy_tuz(right_hand):
@@ -127,17 +129,20 @@ if __name__ == "__main__":
     """
 
     # card_set = SPADES[5:], CLUBS[5:], DIAMONDS[5:], HEARTS[5:]
-    card_set = SPADES[5:]
+    # card_set = SPADES[5:], C[4], H[A]
     # card_set = S[9], S[10], S['Q'], S['K']
+    card_set = SPADES[5:]
 
     left_hand = Player()
     right_hand = Player()
-    player = Player()
+    my_hand = Player()
 
     deck = Deck()
     pile = Pile()
 
-    table = Table(card_set=card_set, deck=deck, pile=pile, players=[left_hand, right_hand, player])
+    table = Table(card_set=card_set, deck=deck, pile=pile, players=[left_hand, right_hand, my_hand])
+
+    print(table.cards)
 
     table.reset()
 
@@ -145,22 +150,22 @@ if __name__ == "__main__":
     LET'S PLAY
     """
 
-    total_try = 10
+    total_try = 1000000
     stat.total_try = total_try
 
-    print('====== PLAYER   :', player)
+    print('====== MY_HAND   :', my_hand)
     print('====== DECK     :', deck)
     print('====== TRYs     :', total_try)
 
     for i in range(total_try):
-        deck.draw(player, (S[9], S[10], S['Q'], S['K']))
+        deck.draw(my_hand, (S[7], S[J], S[K], S[A]))
 
         for card in deck.cards:
             random_opponent = random.choice([right_hand, left_hand])
             deck.draw(random_opponent, card)
 
         # print(f'Try {i}: RIGHT {right_hand} \t LEFT {left_hand}'.expandtabs(40), end="\r")
-        print(f'Try {i}: RIGHT {right_hand} \t LEFT {left_hand}'.expandtabs(40))
+        # print(f'Try {i}: RIGHT {right_hand} \t LEFT {left_hand}'.expandtabs(40))
         analyze(right_hand, left_hand)
         table.reset()
 
